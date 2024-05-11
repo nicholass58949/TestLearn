@@ -88,6 +88,7 @@ class Discriminator(nn.Module):
 
 
 os.makedirs("../../data/mnist", exist_ok=True)
+
 dataloader = torch.utils.data.DataLoader(
     datasets.MNIST(
         "../../data/mnist",
@@ -201,4 +202,3 @@ for epoch in range(opt.n_epochs): # n_epochs: 200
 
 
 
-            
