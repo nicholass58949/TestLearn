@@ -1,7 +1,7 @@
 import argparse
 import os
 import numpy as np
-import math
+# import math
 
 import torchvision.transforms as transforms
 from torchvision.utils import save_image
@@ -11,15 +11,12 @@ from torchvision import datasets
 from torch.autograd import Variable
 
 import torch.nn as nn
-import torch.nn.functional as F
+# import torch.nn.functional as F
 import torch
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1,2,3,4,5,6,7,8"
 
-
 os.makedirs("images", exist_ok=True)
-
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--n_epochs", type=int, default=200, help="number of epochs of training")
@@ -33,10 +30,9 @@ parser.add_argument("--img_size", type=int, default=28, help="size of each image
 parser.add_argument("--channels", type=int, default=1, help="number of image channels")
 parser.add_argument("--sample_interval", type=int, default=400, help="interval between image samples")
 opt = parser.parse_args()
-print(opt) #　打印初始参数
+print(opt)  # 打印初始参数
 
-
-img_shape = (opt.channels, opt.img_size, opt.img_size) #img_shape: (1, 28, 28)
+img_shape = (opt.channels, opt.img_size, opt.img_size)  # img_shape: (1, 28, 28)
 
 
 class Generator(nn.Module):
@@ -63,8 +59,6 @@ class Generator(nn.Module):
         img = self.model(z)
         img = img.view(img.size(0), *img_shape)
         return img
-
-
 
 
 class Discriminator(nn.Module):
@@ -102,14 +96,10 @@ dataloader = torch.utils.data.DataLoader(
     shuffle=True,
 )
 
-
 adversarial_loss = torch.nn.BCELoss(reduction='mean')
-
 
 generator = Generator()
 discriminator = Discriminator()
-
-
 
 CUDA = True if torch.cuda.is_available() else False
 if CUDA:
@@ -136,12 +126,10 @@ if CUDA:
 optimizer_G = torch.optim.Adam(generator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
 optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
 
-
-
-
 Tensor = torch.cuda.FloatTensor if CUDA else torch.FloatTensor
-for epoch in range(opt.n_epochs): # n_epochs: 200
-    for i, (imgs, _) in enumerate(dataloader):        
+
+for epoch in range(opt.n_epochs):  # n_epochs: 200
+    for i, (imgs, _) in enumerate(dataloader):
         # valid设为１，fake设为０
         valid = Variable(Tensor(imgs.size(0), 1).fill_(1.0), requires_grad=False)
         fake = Variable(Tensor(imgs.size(0), 1).fill_(0.0), requires_grad=False)
@@ -161,7 +149,7 @@ for epoch in range(opt.n_epochs): # n_epochs: 200
         # 生成图像
         gen_imgs = generator(z)
 
-         # 生成器欺骗判别器的能力由g_loss表示
+        # 生成器欺骗判别器的能力由g_loss表示
         g_loss = adversarial_loss(discriminator(gen_imgs), valid)
 
         # 反向传播　　　　　
@@ -190,15 +178,9 @@ for epoch in range(opt.n_epochs): # n_epochs: 200
             "[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]"
             % (epoch, opt.n_epochs, i, len(dataloader), d_loss.item(), g_loss.item())
         )
-   
+
         # 当前循环的总次数
         batches_done = epoch * len(dataloader) + i
         # 按一定的间隔输出生成的图像
         if batches_done % opt.sample_interval == 0:
             save_image(gen_imgs.data[:25], "images/%d.png" % batches_done, nrow=5, normalize=True)
-
-
-
-
-
-
