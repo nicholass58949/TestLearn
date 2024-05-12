@@ -1,4 +1,11 @@
 from torch import nn, optim
+import argparse
+import torch
+
+
+from torchvision import datasets, transforms
+from torch import nn, optim
+import torch.optim as opt
 
 
 class Discriminator(nn.Module):
@@ -36,6 +43,10 @@ class Generator(nn.Module):
 #实例化判别器与生成器
 z_dim = 64
 realdata_dim=784
+lr=0.0002
+num_epochs=200
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 gen = Generator(in_features=z_dim,out_features=realdata_dim).to(device)
 disc = Discriminator(in_features=realdata_dim).to(device)
 
@@ -45,6 +56,21 @@ optim_gen = optim.Adam(gen.parameters(),lr=lr,betas=(0.9,0.999))
 
 #定义损失函数
 criterion = nn.BCELoss(reduction="mean") #默认生成均值，也可以特定标明生成均值
+
+
+dataloader = torch.utils.data.DataLoader(
+    datasets.MNIST(
+        "../../data/mnist",
+        train=True,
+        download=True,
+        transform=transforms.Compose(
+            [transforms.Resize(opt.img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
+        ),
+    ),
+    batch_size=opt.batch_size,
+    shuffle=True,
+)
+
 
 
 for epoch in range(num_epochs):
@@ -62,7 +88,7 @@ for epoch in range(num_epochs):
         dgz1 = disc(gz.detach())  # 需要使用detach来阻止gz进入D的计算图，判别器对生成数据的预测概率
         loss_fake = criterion(dgz1, torch.zeros_like(dgz1))  # 所有生成数据的损失均值
         loss_fake.backward(
-            D_G_z1=dgz1.mean().item()
+            D_G_z1=dgz1.mean().item() )
 
         errorD = loss_real + loss_fake
         # errorD.backward() #直接对errorD反向传播，也可分别对loss_real，loss_fake执行反向传播
@@ -76,3 +102,4 @@ for epoch in range(num_epochs):
         optim_gen.step()  # 更新生成器上的权重
         gen.zero_grad()  # 清零生成器更新后梯度
         D_G_z2 = dgz2.mean().item()
+
