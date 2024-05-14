@@ -9,6 +9,8 @@ git commit -m "######"
 git push origin main
 
 
+git rm pull.py 
+
 git pull origin main
 
 git fetch
